@@ -2,7 +2,6 @@ use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::ErrorKind;
 use std::collections::HashMap;
-use serde_json;
 
 pub struct Settings {
   map: HashMap<String, String>

@@ -1,76 +1,51 @@
-  
+use std::fs::File;
+use std::fs::OpenOptions;
+use std::io::ErrorKind;
 use std::collections::HashMap;
-// use std::fmt;
-// use std::fmt::Display;
-// use std::error::*;
-// use serde::de::{Deserialize, Deserializer, Visitor};
-
-
-pub type Res<T> = std::result::Result<T, ConfigError>;
-pub type Array = Vec<Value>;
-pub type Table = HashMap<String, Value>;
+use serde_json;
 
 pub struct Settings {
   map: HashMap<String, String>
 }
 
 impl Settings {
-  pub fn new() -> Self {
-    Settings {
-      map: HashMap::new(),
+    pub fn new() -> Settings {
+        let settings = Settings {
+          map: HashMap::new()
+        };
+        settings.load_config();
+        return settings;
     }
-  }
 
-  pub fn loadConfig(&self) -> Result<bool, std::io::Error> {
-    // load config
-    
-    // config loaded
-    Ok(true)
-  }
+    fn load_config(&self) {
+        let file = match self.load_readable_config() {
+            Ok(file) => file,
+            Err(error) => panic!(error),
+        };
 
-  pub fn saveConfig(&self) -> Result<bool, std::io::Error> {
-    // save config
-    
-    // config saved
-    Ok(true)
-  }
-  
-  pub fn get(&self, key: &str) -> Result<ValueType, ConfigError> {
-
-    if key.is_empty() {
-      return Err(ConfigError::NotFound { key: key.to_string() } );
+        serde_json::to_string(self.map);
+        println!("{:?}", file);
     }
-    
-    Ok(ValueType::String(key.to_string()))
-    
-  }
 
-  pub fn set(&self, key: String, value: ValueType) -> Result<bool, ConfigError> {
-    // check parameters
-    
-    // update hashmap 
-    let value = match value {
-      ValueType::String(val) => val,
-      ValueType::String(val) => json::stringify(val),
+    fn load_config_file(&self, opt: &OpenOptions) -> Result<File, &'static str> {
+        let file = match File::open("settings.json") {
+            Ok(file) => file,
+            Err(err) => match err.kind() {
+                ErrorKind::NotFound => match File::create("settings.json") {
+                    Ok(file) => file,
+                    Err(e) => panic!("Problem while creating file settings.json {:?}", e),
+                },
+                other_error => panic!("Unknown error occured {:?}", other_error),
+            },
+        };
+        return Ok(file);
     }
-    self.map.insert(key, value);
-  }
-}
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum ValueType {
-    Boolean(bool),
-    Integer(i64),
-    Float(f64),
-    String(String),
-    Array(Array),
-}
+    fn load_readable_config(&self) -> Result<File, &'static str> {
+        return self.load_config_file(OpenOptions::new().read(true));
+    }
 
-pub enum ConfigError {
-  Frozen,
-  NotFound { key: String }
+    fn load_writeable_config(&self) -> Result<File, &'static str> {
+        return self.load_config_file(OpenOptions::new().read(true).write(true));
+    }
 }
-
-impl ConfigError {
-}
-

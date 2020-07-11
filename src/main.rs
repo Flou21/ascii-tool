@@ -1,19 +1,11 @@
-mod file;
-mod listener;
-// mod settings;
+mod settings;
 
-use std::collections::HashMap;
+use settings::Settings;
 
-fn main() {
-  let mut settings = config::Config::default();
+pub fn main() {
+  let settings = Settings::new();
 
-  settings
-    .merge(config::File::with_name("Settings")).unwrap()
-    .merge(config::Environment::with_prefix("APP")).unwrap();
+  let array = [1,2,3];
 
-  settings.set("files", "test");
-
-
-  println!("{:?}", settings.try_into::<HashMap<String, String>>().unwrap());
-
+  settings.set();
 }
